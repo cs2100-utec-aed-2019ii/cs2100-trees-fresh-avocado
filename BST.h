@@ -6,6 +6,7 @@
 #define BST_BST_H
 
 #include <iostream>
+#include <vector>
 
 template <typename T>
 class Node {
@@ -73,13 +74,11 @@ public:
                 else
                     temp = temp->left;
             }
-
             if (key < parent->key) {
                 parent->left = new_node;
             } else {
                 parent->right = new_node;
             }
-
         }
     }
 
@@ -179,6 +178,29 @@ public:
                 return(left_height + 1);
             else
                 return(right_height + 1);
+        }
+    }
+
+    bool operator==(const Tree& lhs) {
+        // TODO: mismo contenido y estructura
+        return false;
+    }
+
+    std::vector<Node<T>*> find_ancestors(Node<T>* node) {
+        std::vector<Node<T>*> ancestors = {};
+        if (node == root || node == NULL)
+            return ancestors;
+        else {
+            T node_key = node->key;
+            Node<T>* temp = root;
+            while (temp != NULL && temp->key != node_key) {
+                ancestors.push_back(temp);
+                if (node_key > temp->key)
+                    temp = temp->right;
+                else
+                    temp = temp->left;
+            }
+            return ancestors;
         }
     }
 
