@@ -11,9 +11,9 @@ template <typename T>
 class Node {
 public:
     T key;
-    Node<T>* left = nullptr;
-    Node<T>* right = nullptr;
-    explicit Node(T key): key{key} {}
+    Node<T>* left = NULL;
+    Node<T>* right = NULL;
+    explicit Node(const T& key): key{key} {}
     ~Node() {
         std::cout << "Deleted node with value: " << key << "\n";
     }
@@ -23,17 +23,17 @@ template <typename T>
 class Tree {
 public:
     Node<T>* root;
-    Tree(): root(nullptr) {}
-    explicit Tree(T value) {
+    Tree(): root(NULL) {}
+    explicit Tree(const T& value) {
         root = new Node(value);
     }
 
-    bool is_empty() { return root == nullptr; }
+    bool is_empty() { return root == NULL; }
 
-    Node<T>* find_node(T value) {
+    Node<T>* find_node(const T& value) {
         Node<T>* curr = root;
 
-        while (curr != nullptr) {
+        while (curr != NULL) {
             if (value == curr->key) {
                 return curr;
             } else {
@@ -43,12 +43,12 @@ public:
                     curr = curr->left;
             }
         }
-        return nullptr;
+        return NULL;
     } // finds node with matching value
 
-    Node<T>* find_parent(T value) {
+    Node<T>* find_parent(const T& value) {
         Node<T>* curr = root;
-        Node<T>* parent = nullptr;
+        Node<T>* parent = NULL;
         while (curr) {
             parent = curr;
             if (value > curr->key)
@@ -59,13 +59,13 @@ public:
         return parent;
     } // finds the parent of the node with key == value
 
-    void insert(T key) {
+    void insert(const T& key) {
         Node<T>* new_node = new Node(key);
         if (is_empty()) {
             root = new_node;
         } else {
             Node<T>* temp = root;
-            Node<T>* parent = nullptr;
+            Node<T>* parent = NULL;
             while (temp) {
                 parent = temp;
                 if (key > temp->key)
@@ -85,43 +85,33 @@ public:
 
     Node<T>* min(Node<T>* _root) {
         Node<T>* current = _root;
-
-        /* loop down to find the leftmost leaf */
         while (current && current->left != NULL)
             current = current->left;
-
         return current;
     }
 
     Node<T>* max(Node<T>* _root) {
         Node<T>* current = _root;
-
-        /* loop down to find the leftmost leaf */
         while (current && current->right != NULL)
             current = current->right;
-
         return current;
     }
 
-    Node<T>* erase(Node<T>* _root, T key) {
-        // base case
+    Node<T>* erase(Node<T>* _root, const T& key) {
         if (_root == NULL)
             return _root;
 
-        // If the key to be deleted is smaller than the root's key,
-        // then it lies in left subtree
+        // buscar en el sub-arbol izquierdo
         if (key < _root->key)
             _root->left = erase(_root->left, key);
 
-            // If the key to be deleted is greater than the root's key,
-            // then it lies in right subtree
+        // buscar en el sub-arbol derecho
         else if (key > _root->key)
             _root->right = erase(_root->right, key);
 
-            // if key is same as root's key, then This is the node
-            // to be deleted
+        // son iguales, entonces borrar el nodo
         else {
-            // node with only one child or no child
+            // nodo tiene un solo hijo o ningun hijo
             if (_root->left == NULL) {
                 Node<T>* temp = _root->right;
                 delete _root;
@@ -132,14 +122,13 @@ public:
                 return temp;
             }
 
-            // node with two children: Get the inorder successor (smallest
-            // in the right subtree)
+            // nodo tiene dos hijos, agarrar el inorder_succesor
             Node<T>* temp = min(_root->right);
 
-            // Copy the inorder successor's content to this node
+            // cambiar valores entre ambos nodos
             _root->key = temp->key;
 
-            // Delete the inorder successor
+            // borrar inorder successor
             _root->right = erase(_root->right, temp->key);
         }
         return _root;
@@ -156,36 +145,41 @@ public:
     void print_postorder(Node<T>* node) { // left - right - node
         if (node == NULL)
             return;
-        // first recur on left subtree
         printPostorder(node->left);
-        // then recur on right subtree
         printPostorder(node->right);
-        // now deal with the node
         std::cout << node->data << " ";
     }
 
     void print_preorder(Node<T>* node) { // node - left - right
         if (node == NULL)
             return;
-        // deal with the node
         std::cout << node->data << " ";
-        // first recur on left subtree
         printPostorder(node->left);
-        // then recur on right subtree
         printPostorder(node->right);
     }
 
     void clear(Node<T>* _root) {
-        if (_root == nullptr)
+        if (_root == NULL)
             return;
         clear(_root->left);
         clear(_root->right);
         delete _root;
     }
 
-    unsigned get_height(Node<T>* _root) {
-        // TODO
-        return 0;
+    unsigned get_height(Node<T>* node) {
+        if (node == NULL)
+            return 0;
+        else {
+            // sacar la altura de casa sub-arbol
+            int left_height = get_height(node->left);
+            int right_height = get_height(node->right);
+
+            // retornar la mayor altura de ambas
+            if (left_height > right_height)
+                return(left_height + 1);
+            else
+                return(right_height + 1);
+        }
     }
 
     ~Tree() {
