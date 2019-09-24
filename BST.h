@@ -21,11 +21,11 @@ public:
 };
 
 template <typename T>
-class Tree {
+class BST {
 public:
     Node<T>* root;
-    Tree(): root(NULL) {}
-    explicit Tree(const T& value) {
+    BST(): root(NULL) {}
+    explicit BST(const T& value) {
         root = new Node(value);
     }
 
@@ -175,13 +175,13 @@ public:
 
             // retornar la mayor altura de ambas
             if (left_height > right_height)
-                return(left_height + 1);
+                return left_height+1;
             else
-                return(right_height + 1);
+                return right_height+1;
         }
     }
 
-    bool operator==(const Tree& lhs) {
+    bool operator==(const BST& lhs) {
         // TODO: mismo contenido y estructura
         return false;
     }
@@ -204,7 +204,7 @@ public:
         }
     }
 
-    ~Tree() {
+    ~BST() {
         clear(root);
     }
 
