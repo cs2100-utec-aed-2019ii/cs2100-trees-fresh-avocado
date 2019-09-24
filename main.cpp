@@ -12,24 +12,27 @@ int main(int argc, char** argv) {
     bst.insert(4);
     bst.insert(5);
 
-    bst.print_inorder(bst.root);
+    cout << "BST:" << endl;
+    bst.print_level_order(bst.root);
     cout << endl;
 
-//    bst.erase(bst.root, 2);
-//
-//    cout << bst.get_height(bst.root) << endl;
-//
-//    bst.print_inorder(bst.root);
-//    cout << endl;
+    BT<int> bt;
+    bt.insert(1);
+    bt.insert(2);
+    bt.insert(3);
+    bt.insert(4);
+    bt.insert(5);
 
-    Node<int>* node_with_5 = bst.find_node(5);
-    vector<Node<int>*> ancestors_of_5 = bst.find_ancestors(node_with_5);
-
-    cout << "Ancestors of 5: \n";
-    for (auto node : ancestors_of_5) {
-        cout << node->key << " ";
-    }
+    cout << "BT:" << endl;
+    bt.print_level_order(bt.root);
     cout << endl;
+
+    vector< Node<int>* > nvec = {};
+
+//    BST<int> generated = (bt.to_bst(nvec, bt.root));
+
+    cout << "Are both trees the same? ";
+    cout << bst.equal_trees(bst.root, (bt.to_bst(nvec, bt.root)).root) << endl;
 
     return 0;
 }
