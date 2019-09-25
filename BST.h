@@ -31,6 +31,25 @@ public:
         root = new Node(value);
     }
 
+    BST(const BST& other) {
+        std::stack<Node<T>*> s;
+        Node<T>* curr = other.root;
+
+        while (curr != NULL || !s.empty()) {
+            while (curr !=  NULL) {
+                s.push(curr);
+                curr = curr->left;
+            }
+
+            curr = s.top();
+            s.pop();
+
+            insert(curr->key);
+
+            curr = curr->right;
+        }
+    }
+
     bool is_empty() { return root == NULL; }
 
     Node<T>* find_node(const T& value) {
@@ -255,6 +274,25 @@ public:
         root = new Node(value);
     }
 
+    explicit BT(const BT& other) {
+        std::stack<Node<T>*> s;
+        Node<T>* curr = other.root;
+
+        while (curr != NULL || !s.empty()) {
+            while (curr !=  NULL) {
+                s.push(curr);
+                curr = curr->left;
+            }
+
+            curr = s.top();
+            s.pop();
+
+            insert(curr->key);
+
+            curr = curr->right;
+        }
+    }
+
     void print_inorder(Node<T>* _root) {
         if (_root == NULL)
             return;
@@ -272,6 +310,7 @@ public:
             Node<T>* new_root = new Node(key);
             root = new_root;
             q.push(new_root);
+            return; // otherwise the root is inserted twice
         }
 
         // level order traversal hasta encontrar un espacio libre
@@ -312,53 +351,122 @@ public:
         delete _root;
     }
 
-private:
+    unsigned get_height(Node<T>* node) {
+        if (node == NULL)
+            return 0;
+        else {
+            // sacar la altura de casa sub-arbol
+            int left_height = get_height(node->left);
+            int right_height = get_height(node->right);
 
-    void push_all_nodes(std::vector< Node<T>* >& nvec, Node<T>* _root) { // left - node - right
-        std::stack<Node<T>*> s;
-        Node<T>* curr = root;
-
-        while (curr != NULL || s.empty() == false) {
-            /* Reach the left most Node of the
-               curr Node */
-            while (curr !=  NULL)
-            {
-                /* place pointer to a tree node on
-                   the stack before traversing
-                  the node's left subtree */
-                s.push(curr);
-                curr = curr->left;
-            }
-
-            /* Current must be NULL at this point */
-            curr = s.top();
-            s.pop();
-
-            cout << curr->data << " ";
-
-            /* we have visited the node and its
-               left subtree.  Now, it's right
-               subtree's turn */
-            curr = curr->right;
-
-        } /* end of while */
+            // retornar la mayor altura de ambas
+            if (left_height > right_height)
+                return left_height+1;
+            else
+                return right_height+1;
+        }
     }
 
-public:
-
     BST<T>& to_bst(std::vector< Node<T>* >& nvec, Node<T>* _root) {
-        // push all nodes into vector
-        push_all_nodes(nvec, _root);
+        // TODO
+    }
 
-        // create the BST
-        BST<T> bst;
+    bool is_bst(Node<T>* _root) {
+        return is_bst_aux(_root, INT_MIN, INT_MAX);
+    }
 
-        // insert each element into the new bst
-        for (auto node : nvec)
-            bst.insert(node->key);
+    bool is_bst_aux(Node<T>* _root, unsigned min, unsigned max) {
+        if (_root == NULL)
+            return true;
 
-        // return bst
-        return bst;
+        if (_root->key < min || _root->key > max)
+            return false;
+
+        return is_bst_aux(_root->left, min, _root->key-1) && is_bst_aux(_root->right, _root->key+1, max);
+    }
+
+    Node<T>* find_node(Node<T>* _root, const T& value) {
+        if (_root == NULL)
+            return NULL;
+
+        std::queue< Node<T>* > q;
+
+        q.push(_root);
+
+        while (!q.empty()) {
+            // number of nodes at the current level
+            unsigned node_count = q.size();
+
+            // delete all nodes in the current level
+            // insert all nodes in the next level
+            while (node_count > 0) {
+                Node<T>* node = q.front();
+                if (node->key == value)
+                    return node;
+                q.pop();
+                if (node->left != NULL)
+                    q.push(node->left);
+                if (node->right != NULL)
+                    q.push(node->right);
+                --node_count;
+            }
+        }
+    }
+
+    // te retorna el mismo nodo si no hay más nodos en el mismo nivel
+    Node<T>* find_next_node_in_same_level(Node<T>* _root, Node<T>* node) {
+        if (node == NULL)
+            return node;
+
+        std::queue< Node<T>* > q;
+
+        q.push(_root);
+
+        bool nodo_esta_en_este_nivel = false;
+
+        while (!q.empty()) {
+            // number of nodes at the current level
+            unsigned node_count = q.size();
+
+            // check if we are in the node's level
+            // then, check for all nodes in that level
+            // return the one next to the node passed in
+
+            std::vector< Node<T>* > nodes_in_same_level(0);
+
+            // delete all nodes in the current level
+            // insert all nodes in the next level
+            while (node_count > 0) {
+                Node<T>* _node = q.front();
+
+                nodes_in_same_level.push_back(_node);
+
+                q.pop();
+                if (_node->left != NULL)
+                    q.push(_node->left);
+                if (_node->right != NULL)
+                    q.push(_node->right);
+                --node_count;
+            }
+
+            unsigned nodes_in_same_level_size = nodes_in_same_level.size();
+
+            unsigned index_of_node;
+
+            for (unsigned i = 0; i < nodes_in_same_level_size; ++i) {
+                if (node == nodes_in_same_level[i]) {
+                    nodo_esta_en_este_nivel = true;
+                    index_of_node = i;
+                    break;
+                }
+            }
+
+            if (nodo_esta_en_este_nivel && index_of_node != nodes_in_same_level_size-1 && nodes_in_same_level_size > 1) {
+                return nodes_in_same_level[index_of_node+1]; // retornando el siguiente
+            }
+
+        }
+        return node; // no lo encontró :(
     }
 
     void print_level_order(Node<T>* _root) {

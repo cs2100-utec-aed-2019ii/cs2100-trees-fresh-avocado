@@ -27,12 +27,11 @@ int main(int argc, char** argv) {
     bt.print_level_order(bt.root);
     cout << endl;
 
-    vector< Node<int>* > nvec = {};
-
-//    BST<int> generated = (bt.to_bst(nvec, bt.root));
-
-    cout << "Are both trees the same? ";
-    cout << bst.equal_trees(bst.root, (bt.to_bst(nvec, bt.root)).root) << endl;
+    cout << "Is this BT a BST? " << bt.is_bst(bt.root) << endl;
+    cout << "Height of this BT: " << bt.get_height(bt.root) << endl;
+    Node<int>* nodo_con_4 = bt.find_node(bt.root, 4);
+    cout << "Finding node with value 4: " << nodo_con_4->key << endl;
+    cout << "El nodo que le sigue a 4 es: " << (bt.find_next_node_in_same_level(bt.root, nodo_con_4))->key << endl;
 
     return 0;
 }
