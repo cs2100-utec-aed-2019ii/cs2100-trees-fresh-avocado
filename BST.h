@@ -50,6 +50,16 @@ public:
         }
     }
 
+    bool is_height_balanced(Node<T>* _root) {
+        int left_tree_height = get_height(_root->left);
+        int right_tree_height = get_height(_root->right);
+
+        int diff = left_tree_height - right_tree_height;
+
+        // si al diff de alturas de ambos sub arboles es maximo 1, entonces el arbol esta height-balanced
+        return abs(diff) <= 1;
+    }
+
     bool is_empty() { return root == NULL; }
 
     Node<T>* find_node(const T& value) {
@@ -241,6 +251,62 @@ public:
         return false;
     }
 
+    // te retorna el mismo nodo si no hay más nodos en el mismo nivel
+    Node<T>* find_next_node_in_same_level(Node<T>* _root, Node<T>* node) {
+        if (node == NULL)
+            return node;
+
+        std::queue< Node<T>* > q;
+
+        q.push(_root);
+
+        bool nodo_esta_en_este_nivel = false;
+
+        while (!q.empty()) {
+            // number of nodes at the current level
+            unsigned node_count = q.size();
+
+            // check if we are in the node's level
+            // then, check for all nodes in that level
+            // return the one next to the node passed in
+
+            std::vector< Node<T>* > nodes_in_same_level(0);
+
+            // delete all nodes in the current level
+            // insert all nodes in the next level
+            while (node_count > 0) {
+                Node<T>* _node = q.front();
+
+                nodes_in_same_level.push_back(_node);
+
+                q.pop();
+                if (_node->left != NULL)
+                    q.push(_node->left);
+                if (_node->right != NULL)
+                    q.push(_node->right);
+                --node_count;
+            }
+
+            unsigned nodes_in_same_level_size = nodes_in_same_level.size();
+
+            unsigned index_of_node;
+
+            for (unsigned i = 0; i < nodes_in_same_level_size; ++i) {
+                if (node == nodes_in_same_level[i]) {
+                    nodo_esta_en_este_nivel = true;
+                    index_of_node = i;
+                    break;
+                }
+            }
+
+            if (nodo_esta_en_este_nivel && index_of_node != nodes_in_same_level_size-1 && nodes_in_same_level_size > 1) {
+                return nodes_in_same_level[index_of_node+1]; // retornando el siguiente
+            }
+
+        }
+        return node; // no lo encontró :(
+    }
+
     std::vector<Node<T>*> find_ancestors(Node<T>* node) {
         std::vector<Node<T>*> ancestors = {};
         if (node == root || node == NULL)
@@ -259,6 +325,85 @@ public:
         }
     }
 
+    bool is_complete(Node<T>* _root, unsigned index, unsigned int number_nodes) {
+        // An empty tree is complete
+        if (_root == NULL)
+            return true;
+
+        // If index assigned to current node is more than
+        // number of nodes in tree, then tree is not complete
+        if (index >= number_nodes)
+            return false;
+
+        // Recur for left and right subtrees
+        return is_complete(_root->left, 2*index+1, number_nodes) &&
+                is_complete(_root->right, 2*index+2, number_nodes);
+    }
+
+    unsigned int count_nodes(Node<T>* _root) {
+        if (_root == NULL)
+            return 0;
+        return (1 + count_nodes(_root->left) + count_nodes(_root->right));
+    }
+
+    void print_path_to_node(Node<T>* node) {
+        Node<T>* curr = root;
+
+        while (curr != NULL) {
+            if (node->key == curr->key) {
+                std::cout << curr->key << " ";
+                break;
+            } else {
+                if (node->key > curr->key) {
+                    std::cout << curr->key << " ";
+                    curr = curr->right;
+                } else {
+                    std::cout << curr->key << " ";
+                    curr = curr->left;
+                }
+            }
+        }
+    }
+
+    void print_all_paths_from_root_to_leaf_nodes() {
+        unsigned last_level = get_height(root)-1;
+        unsigned current_level = 0;
+
+        std::queue< Node<T>* > q;
+        std::vector< Node<T>* > leaf_nodes = {};
+
+        q.push(root);
+
+        while (!q.empty()) {
+            // number of nodes at the current level
+            unsigned node_count = q.size();
+
+            // delete all nodes in the current level
+            // insert all nodes in the next level
+            while (node_count > 0) {
+                Node<T>* node = q.front();
+
+                // CODE HERE
+                if (current_level == last_level) {
+                    leaf_nodes.push_back(node);
+                }
+
+                q.pop();
+                if (node->left != NULL)
+                    q.push(node->left);
+                if (node->right != NULL)
+                    q.push(node->right);
+                --node_count;
+            }
+            ++current_level;
+        }
+
+        for (auto leaf : leaf_nodes) {
+            print_path_to_node(leaf);
+        }
+
+    }
+
     ~BST() {
         clear(root);
     }
@@ -274,7 +419,7 @@ public:
         root = new Node(value);
     }
 
-    explicit BT(const BT& other) {
+    BT(const BT& other) {
         std::stack<Node<T>*> s;
         Node<T>* curr = other.root;
 
@@ -291,6 +436,23 @@ public:
 
             curr = curr->right;
         }
+    }
+
+    bool is_complete(Node<T>* _root, unsigned index, unsigned int node_count) {
+        if (_root == NULL)
+            return true;
+
+        if (index >= node_count)
+            return false;
+
+        return (is_complete(_root->left, 2*index + 1, node_count) &&
+               is_complete(_root->right, 2*index + 2, node_count));
+    }
+
+    unsigned int count_nodes(Node<T>* _root) {
+        if (_root == NULL)
+            return 0;
+        return (1 + count_nodes(_root->left) + count_nodes(_root->right));
     }
 
     void print_inorder(Node<T>* _root) {
