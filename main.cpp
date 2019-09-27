@@ -11,6 +11,7 @@ int main(int argc, char** argv) {
     bst.insert(41);
     bst.insert(34);
     bst.insert(36);
+    bst.insert(42);
 
     cout << "BST:" << endl;
     bst.print_level_order(bst.root);
@@ -29,12 +30,12 @@ int main(int argc, char** argv) {
     cout << endl;
 
     cout << "Is this BT a BST? " << bt.is_bst(bt.root) << endl;
-    cout << "Height of this BT: " << bt.get_height(bt.root) << endl;
-    Node<int>* nodo_con_4 = bt.find_node(bt.root, 4);
-    cout << "Finding node with value 4: " << nodo_con_4->key << endl;
-    cout << "El nodo que le sigue a 4 es: " << (bt.find_next_node_in_same_level(bt.root, nodo_con_4))->key << endl;
+    cout << "Height of this BST: " << bst.get_height(bst.root) << endl;
+    Node<int>* nodo_con_34 = bst.find_node(34);
+    cout << "Finding node with value 34: " << nodo_con_34->key << endl;
+    cout << "El nodo que le sigue a 34 es: " << (bst.find_next_node_in_same_level(bst.root, nodo_con_34))->key << endl;
     unsigned node_count = bst.count_nodes(bst.root);
-    cout << "node_count en BT: " << node_count << endl;
+    cout << "node_count en BST: " << node_count << endl;
     unsigned index = 0;
     cout << "El BST es completo? " << bst.is_complete(bst.root, index, node_count) << "\n";
 
@@ -43,6 +44,20 @@ int main(int argc, char** argv) {
     cout << endl;
 
     cout << "Is BST height balanced? " << bst.is_height_balanced(bst.root) << "\n";
+
+    cout << "CircularDoubleLinkedList in last level:" << endl;
+
+    cout << "nodo_con_34->prev: ";
+    cout << nodo_con_34->prev->key << endl;
+
+    cout << "nodo_con_34->next: ";
+    cout << nodo_con_34->next->key << endl;
+
+    cout << "nodo_con_34->next->next: ";
+    cout << nodo_con_34->next->next->key << endl;
+
+    cout << "nodo_con_34->next->next->next: ";
+    cout << nodo_con_34->next->next->next->key << endl;
 
     return 0;
 }

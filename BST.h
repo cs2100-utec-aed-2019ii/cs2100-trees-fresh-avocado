@@ -16,6 +16,8 @@ public:
     T key;
     Node<T>* left = NULL;
     Node<T>* right = NULL;
+    Node<T>* prev = NULL; // double linked list simulation
+    Node<T>* next = NULL; // double linked list simulation
     explicit Node(const T& key): key{key} {}
     ~Node() {
         std::cout << "Deleted node with value: " << key << "\n";
@@ -110,6 +112,55 @@ public:
             } else {
                 parent->right = new_node;
             }
+        }
+        double_link_last_level(root, new_node);
+    }
+
+    void double_link_last_level(Node<T>* _root, Node<T>* new_node) {
+        unsigned last_level = get_height(root);
+        unsigned new_node_level = get_level(new_node, new_node->key);
+        if (new_node_level == last_level) {
+            unsigned current_level = 1;
+
+            std::queue< Node<T>* > q;
+            std::vector< Node<T>* > nodes_in_same_level = {};
+
+            q.push(_root);
+
+            while (!q.empty()) {
+                // number of nodes at the current level
+                unsigned node_count = q.size();
+
+                // delete all nodes in the current level
+                // insert all nodes in the next level
+                while (node_count > 0) {
+                    Node<T> *node = q.front();
+
+                    if (current_level == last_level)
+                        nodes_in_same_level.push_back(node);
+
+                    q.pop();
+                    if (node->left != NULL)
+                        q.push(node->left);
+                    if (node->right != NULL)
+                        q.push(node->right);
+                    --node_count;
+                }
+                ++current_level;
+            }
+
+            unsigned nodes_in_same_level_size = nodes_in_same_level.size();
+
+            if (nodes_in_same_level_size > 1) {
+                for (unsigned i = 0; i < nodes_in_same_level_size - 1; ++i) {
+                    nodes_in_same_level[i]->next = nodes_in_same_level[i + 1];
+                    nodes_in_same_level[i + 1]->prev = nodes_in_same_level[i];
+                }
+                nodes_in_same_level[0]->prev = nodes_in_same_level[nodes_in_same_level_size-1];
+                nodes_in_same_level[nodes_in_same_level_size - 1]->next = nodes_in_same_level[0];
+                nodes_in_same_level[nodes_in_same_level_size - 1]->prev = nodes_in_same_level[nodes_in_same_level_size - 2];
+            }
+
         }
     }
 
@@ -240,6 +291,38 @@ public:
         }
     }
 
+    unsigned get_level(Node<T>* node, T key) {
+        std::queue< Node<T>* > q;
+        int level = 1;
+        q.push(root);
+
+        // extra NULL is pushed to keep track
+        // of all the nodes to be pushed before
+        // level is incremented by 1
+        q.push(NULL);
+        while (!q.empty()) {
+            Node<T>* temp = q.front();
+            q.pop();
+            if (temp == NULL) {
+                if (q.front() != NULL) {
+                    q.push(NULL);
+                }
+                level += 1;
+            } else {
+                if (temp->key == key) {
+                    return level;
+                }
+                if (temp->left) {
+                    q.push(temp->left);
+                }
+                if (temp->right) {
+                    q.push(temp->right);
+                }
+            }
+        }
+        return 0;
+    }
+
     bool equal_trees(Node<T>* _root1, Node<T>* _root2) {
         if (_root1 == NULL && _root2 == NULL)
             return true;
@@ -249,62 +332,6 @@ public:
         }
 
         return false;
-    }
-
-    // te retorna el mismo nodo si no hay más nodos en el mismo nivel
-    Node<T>* find_next_node_in_same_level(Node<T>* _root, Node<T>* node) {
-        if (node == NULL)
-            return node;
-
-        std::queue< Node<T>* > q;
-
-        q.push(_root);
-
-        bool nodo_esta_en_este_nivel = false;
-
-        while (!q.empty()) {
-            // number of nodes at the current level
-            unsigned node_count = q.size();
-
-            // check if we are in the node's level
-            // then, check for all nodes in that level
-            // return the one next to the node passed in
-
-            std::vector< Node<T>* > nodes_in_same_level(0);
-
-            // delete all nodes in the current level
-            // insert all nodes in the next level
-            while (node_count > 0) {
-                Node<T>* _node = q.front();
-
-                nodes_in_same_level.push_back(_node);
-
-                q.pop();
-                if (_node->left != NULL)
-                    q.push(_node->left);
-                if (_node->right != NULL)
-                    q.push(_node->right);
-                --node_count;
-            }
-
-            unsigned nodes_in_same_level_size = nodes_in_same_level.size();
-
-            unsigned index_of_node;
-
-            for (unsigned i = 0; i < nodes_in_same_level_size; ++i) {
-                if (node == nodes_in_same_level[i]) {
-                    nodo_esta_en_este_nivel = true;
-                    index_of_node = i;
-                    break;
-                }
-            }
-
-            if (nodo_esta_en_este_nivel && index_of_node != nodes_in_same_level_size-1 && nodes_in_same_level_size > 1) {
-                return nodes_in_same_level[index_of_node+1]; // retornando el siguiente
-            }
-
-        }
-        return node; // no lo encontró :(
     }
 
     std::vector<Node<T>*> find_ancestors(Node<T>* node) {
@@ -401,7 +428,62 @@ public:
         for (auto leaf : leaf_nodes) {
             print_path_to_node(leaf);
         }
+    }
 
+    // te retorna el mismo nodo si no hay más nodos en el mismo nivel
+    Node<T>* find_next_node_in_same_level(Node<T>* _root, Node<T>* node) {
+        if (node == NULL)
+            return node;
+
+        std::queue< Node<T>* > q;
+
+        q.push(_root);
+
+        bool nodo_esta_en_este_nivel = false;
+
+        while (!q.empty()) {
+            // number of nodes at the current level
+            unsigned node_count = q.size();
+
+            // check if we are in the node's level
+            // then, check for all nodes in that level
+            // return the one next to the node passed in
+
+            std::vector< Node<T>* > nodes_in_same_level(0);
+
+            // delete all nodes in the current level
+            // insert all nodes in the next level
+            while (node_count > 0) {
+                Node<T>* _node = q.front();
+
+                nodes_in_same_level.push_back(_node);
+
+                q.pop();
+                if (_node->left != NULL)
+                    q.push(_node->left);
+                if (_node->right != NULL)
+                    q.push(_node->right);
+                --node_count;
+            }
+
+            unsigned nodes_in_same_level_size = nodes_in_same_level.size();
+
+            unsigned index_of_node;
+
+            for (unsigned i = 0; i < nodes_in_same_level_size; ++i) {
+                if (node == nodes_in_same_level[i]) {
+                    nodo_esta_en_este_nivel = true;
+                    index_of_node = i;
+                    break;
+                }
+            }
+
+            if (nodo_esta_en_este_nivel && index_of_node != nodes_in_same_level_size-1 && nodes_in_same_level_size > 1) {
+                return nodes_in_same_level[index_of_node+1]; // retornando el siguiente
+            }
+
+        }
+        return node; // no lo encontró :(
     }
 
     ~BST() {
@@ -438,6 +520,87 @@ public:
         }
     }
 
+    unsigned get_level(Node<T>* node, T key) {
+        std::queue< Node<T>* > q;
+        int level = 1;
+        q.push(root);
+
+        // extra NULL is pushed to keep track
+        // of all the nodes to be pushed before
+        // level is incremented by 1
+        q.push(NULL);
+        while (!q.empty()) {
+            Node<T>* temp = q.front();
+            q.pop();
+            if (temp == NULL) {
+                if (q.front() != NULL) {
+                    q.push(NULL);
+                }
+                level += 1;
+            } else {
+                if (temp->key == key) {
+                    return level;
+                }
+                if (temp->left) {
+                    q.push(temp->left);
+                }
+                if (temp->right) {
+                    q.push(temp->right);
+                }
+            }
+        }
+        return 0;
+    }
+
+    void double_link_last_level(Node<T>* _root, Node<T>* new_node) {
+        unsigned last_level = get_height(root);
+
+        if (get_level(new_node, new_node->key) == last_level) {
+            unsigned current_level = 1;
+
+            std::queue<Node<T> *> q;
+            std::vector<Node<T> *> nodes_in_same_level = {};
+
+            q.push(_root);
+
+            while (!q.empty()) {
+                // number of nodes at the current level
+                unsigned node_count = q.size();
+
+                // delete all nodes in the current level
+                // insert all nodes in the next level
+                while (node_count > 0) {
+                    Node<T> *node = q.front();
+
+                    if (current_level == last_level)
+                        nodes_in_same_level.push_back(node);
+
+                    q.pop();
+                    if (node->left != NULL)
+                        q.push(node->left);
+                    if (node->right != NULL)
+                        q.push(node->right);
+                    --node_count;
+                }
+                ++current_level;
+            }
+
+            unsigned nodes_in_same_level_size = nodes_in_same_level.size();
+
+            if (nodes_in_same_level_size > 1) {
+                for (unsigned i = 0; i < nodes_in_same_level_size - 1; ++i) {
+                    nodes_in_same_level[i]->next = nodes_in_same_level[i + 1];
+                    nodes_in_same_level[i + 1]->prev = nodes_in_same_level[i];
+                }
+                nodes_in_same_level[0]->prev = nodes_in_same_level[nodes_in_same_level_size-1];
+                nodes_in_same_level[nodes_in_same_level_size - 1]->next = nodes_in_same_level[0];
+                nodes_in_same_level[nodes_in_same_level_size - 1]->prev = nodes_in_same_level[nodes_in_same_level_size -
+                                                                                              2];
+            }
+
+        }
+    }
+
     bool is_complete(Node<T>* _root, unsigned index, unsigned int node_count) {
         if (_root == NULL)
             return true;
@@ -465,13 +628,13 @@ public:
     }
 
     void insert(T key) {
+        Node<T>* new_node = new Node(key);
         std::queue< Node<T>* > q;
         if (root != NULL) {
             q.push(root);
         } else {
-            Node<T>* new_root = new Node(key);
-            root = new_root;
-            q.push(new_root);
+            root = new_node;
+            q.push(new_node);
             return; // otherwise the root is inserted twice
         }
 
@@ -481,17 +644,18 @@ public:
             q.pop();
 
             if (temp->left == NULL) {
-                temp->left = new Node(key);
+                temp->left = new_node;
                 break;
             } else
                 q.push(temp->left);
 
             if (temp->right == NULL) {
-                temp->right = new Node(key);
+                temp->right = new_node;
                 break;
             } else
                 q.push(temp->right);
         }
+        double_link_last_level(root, new_node);
     }
 
     bool equal_trees(Node<T>* _root1, Node<T>* _root2) {
